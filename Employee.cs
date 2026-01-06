@@ -2,23 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
-using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.EmployeeRoles;
+using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Employee : IExtent<Employee>
+    public class Employee : Person, IExtent<Employee>
     {
         // ================= STATIC =================
         [XmlIgnore]
         private static double _minSalary = 3000;
 
-        // ================= BASIC ATTRIBUTES =================
-        private string _name;
-        private string _surname;
-        private DateTime _birthDate;
+        // ================= EMPLOYEE ATTRIBUTES =================
         private DateTime _startDate;
         private DateTime? _endDate;
         private double _salary;
@@ -69,39 +66,6 @@ namespace CinemaManagementSystem
         }
 
         // ================= PROPERTIES =================
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Name cannot be empty.");
-                _name = value;
-            }
-        }
-
-        public string Surname
-        {
-            get => _surname;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Surname cannot be empty.");
-                _surname = value;
-            }
-        }
-
-        public DateTime BirthDate
-        {
-            get => _birthDate;
-            set
-            {
-                if (value > DateTime.Now.AddYears(-16))
-                    throw new ArgumentException("Employee must be at least 16 years old.");
-                _birthDate = value;
-            }
-        }
-
         public DateTime StartDate
         {
             get => _startDate;
@@ -135,19 +99,7 @@ namespace CinemaManagementSystem
             }
         }
 
-        // ================= DERIVED ATTRIBUTES =================
-        [XmlIgnore]
-        public int Age
-        {
-            get
-            {
-                int age = DateTime.Now.Year - BirthDate.Year;
-                if (DateTime.Now.DayOfYear < BirthDate.DayOfYear)
-                    age--;
-                return age;
-            }
-        }
-
+        // ================= DERIVED =================
         [XmlIgnore]
         public int YearsOfService
         {
@@ -169,7 +121,6 @@ namespace CinemaManagementSystem
         {
             if (employee == null)
                 throw new ArgumentNullException(nameof(employee));
-
             _employees.Add(employee);
         }
 
@@ -185,19 +136,18 @@ namespace CinemaManagementSystem
             string name,
             string surname,
             DateTime birthDate,
+            GenderEnum gender,
             DateTime startDate,
             double salary,
             IEmployeeRole role,
             DateTime? endDate = null)
+            : base(name, surname, birthDate, gender)
         {
-            Name = name;
-            Surname = surname;
-            BirthDate = birthDate;
             StartDate = startDate;
-            EndDate = endDate;
             Salary = salary;
-
+            EndDate = endDate;
             SetRole(role);
+
             AddEmployee(this);
         }
 
@@ -231,7 +181,7 @@ namespace CinemaManagementSystem
         public override string ToString()
         {
             string end = EndDate.HasValue ? EndDate.Value.ToShortDateString() : "Present";
-            return $"{Name} {Surname}, Age: {Age}, Salary: {Salary}€, " +
+            return $"{base.ToString()}, Salary: {Salary}€, " +
                    $"Started: {StartDate:dd/MM/yyyy}, End: {end}, " +
                    $"Years of Service: {YearsOfService}";
         }
